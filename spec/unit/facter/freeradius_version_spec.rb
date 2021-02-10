@@ -4,7 +4,15 @@ require 'facter/freeradius_version'
 describe 'freeradius_version', type: :fact do
   before :each do
     Facter.clear
-    allow(Facter::Core::Execution).to receive(:exec).with('radiusd -v').and_return('FreeRADIUS Version 3.0.21')
+    orig_exec_method = Facter::Core::Execution.method(:exec)
+    allow(Facter::Core::Execution).to receive(:exec) do |cmd|
+      case cmd
+      when 'radiusd -v'
+        'FreeRADIUS Version 3.0.21'
+      else
+        orig_exec_method.call(cmd)
+      end
+    end
   end
 
   it 'sets freeradius_version' do
