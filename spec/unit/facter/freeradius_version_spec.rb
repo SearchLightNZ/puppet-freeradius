@@ -8,9 +8,16 @@ describe 'freeradius_version', type: :fact do
 
       before :each do
         Facter.clear
+        orig_facter_value_method = Facter.method(:value)
+        allow(Facter).to receive(:value) do |fact|
+          if facts.has_key?(fact)
+            facts[fact]
+          else
+            orig_facter_value_method(fact)
+          end
+        end
+
         orig_exec_method = Facter::Core::Execution.method(:exec)
-        allow(Facter).to receive(:value).with(:osfamily).and_return(facts[:osfamily])
-        allow(Facter).to receive(:value).with(:kernel).and_return(facts[:kernel])
         allow(Facter::Core::Execution).to receive(:exec) do |cmd|
           case cmd
           when %r{^(radiusd|freeradius) -v$}
